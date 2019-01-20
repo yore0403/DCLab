@@ -1,0 +1,79 @@
+ncverilog(64): 12.20-s012: (c) Copyright 1995-2013 Cadence Design Systems, Inc.
+TOOL:	ncverilog	12.20-s012: Started on Oct 26, 2018 at 01:49:05 CST
+ncverilog
+	+access+r
+	test_wrapper.sv
+	PipelineCtrl.v
+	PipelineTb.v
+	../Rsa256Wrapper.sv
+	../Rsa256Core.sv
+Recompiling... reason: file '../Rsa256Wrapper.sv' is newer than expected.
+	expected: Fri Oct 26 01:46:37 2018
+	actual:   Fri Oct 26 01:49:04 2018
+file: PipelineTb.v
+		$fseek(fp, 0, 0);
+		     |
+ncvlog: *W,NOSYST (PipelineTb.v,114|7): System function '$fseek' invoked as a task. Return value will be ignored.
+		$fscanf(fp, FMT, dat_r);
+		      |
+ncvlog: *W,NOSYST (PipelineTb.v,115|8): System function '$fscanf' invoked as a task. Return value will be ignored.
+			$fscanf(fp, FMT, dat_w);
+			      |
+ncvlog: *W,NOSYST (PipelineTb.v,120|9): System function '$fscanf' invoked as a task. Return value will be ignored.
+		$fseek(fp, 0, 0);
+		     |
+ncvlog: *W,NOSYST (PipelineTb.v,161|7): System function '$fseek' invoked as a task. Return value will be ignored.
+			$fscanf(fp, FMT, dat_r);
+			      |
+ncvlog: *W,NOSYST (PipelineTb.v,167|9): System function '$fscanf' invoked as a task. Return value will be ignored.
+			$fscanf(fp, FMT, dat_w);
+			      |
+ncvlog: *W,NOSYST (PipelineTb.v,173|9): System function '$fscanf' invoked as a task. Return value will be ignored.
+file: ../Rsa256Wrapper.sv
+	module worklib.Rsa256Wrapper:sv
+		errors: 0, warnings: 0
+		Caching library 'worklib' ....... Done
+	Elaborating the design hierarchy:
+		.rdy_and_dat({u_slave.tx_src_rdy,u_slave.avm_writedata}),
+		             |
+ncelab: *W,CUVMPW (./test_wrapper.sv,157|15): port sizes differ in port connection (33/9).
+	Building instance overlay tables: .................... Done
+	Generating native compiled code:
+		worklib.Rsa256Wrapper:sv <0x4415e01d>
+			streams:  15, words: 16567
+	Loading native compiled code:     .................... Done
+	Building instance specific data structures.
+	Design hierarchy summary:
+		               Instances  Unique
+		Modules:              20      14
+		Registers:           193     160
+		Scalar wires:         77       -
+		Vectored wires:       44       -
+		Always blocks:        34      25
+		Initial blocks:        2       2
+		Cont. assignments:    16      20
+		Pseudo assignments:   57      57
+	Writing initial simulation snapshot: worklib.tb:sv
+Loading snapshot worklib.tb:sv .................... Done
+*Verdi3* Loading libsscore_ius122.so
+*Verdi3* : Enable Parallel Dumping.
+ncsim> source /opt/CAD/INCISIV/cur/tools/inca/files/ncsimrc
+ncsim> run
+FSDB Dumper for IUS, Release Verdi3_2013.07, Linux x86_64/64bit, 07/04/2013
+(C) 1996 - 2013 by Synopsys, Inc.
+*Verdi3* FSDB WARNING: The FSDB file already exists. Overwriting the FSDB file may crash the programs that are using this file.
+*Verdi3* : Create FSDB file 'lab2.fsdb'
+*Verdi3* : Begin traversing the scopes, layer (0).
+*Verdi3* : End of traversing.
+Simulation done
+Report of tb.u_output.Report:
+           217 Expected
+           217 Received
+             0 Error
++======================+
+|  Simulation Correct  |
++======================+
+Simulation complete via $finish(1) at time 6019325 NS + 0
+./test_wrapper.sv:215 				$finish;
+ncsim> exit
+TOOL:	ncverilog	12.20-s012: Exiting on Oct 26, 2018 at 01:49:14 CST  (total: 00:00:09)

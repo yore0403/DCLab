@@ -1,0 +1,244 @@
+//code by b05901084
+//the LCDdisplay design should see 
+//o_play_n for if playing or not,
+//o_speed[4] for fast(0) or slow(1),
+//o_speed[3:0] for speed
+//o_state for idle(1000) stop(0000) play(0001) pause(0010)
+//o_state[3] for idle or not,
+//o_state[2] for readmode or writemode,
+//o_state[0] for playing or not,
+//o_state[1] for puase or not
+//different from chiachen :i_pause =>i_play
+//						   [2:0]o_state => [3:0]o_state
+//						   [4:0]o_speed => [3:0]o_speed
+
+module SramReader(
+	input i_bclk,
+	input i_rst,
+	input i_mode,
+	input [3:0]i_bar,
+	input [3:0]i_bar2,
+	input i_play,
+	//input i_DACLRCK,
+	//input [19:0] i_end_addr,
+	input [15:0] i_SRAM_DQ,
+	input i_en,
+
+	output [19:0] o_addr,
+	output [63:0] o_data,
+	output o_finish,
+	//output [15:0] o_DACDAT,
+	output o_play_n,
+	output flag
+	//output [3:0]  o_state,
+	//output [3:0]  o_speed
+);
+
+	enum {IDLE,STOP, WAIT,WAIT1, READ1, READ2, READ3,READ4,READ11, READ21, READ31,READ41} state_w, state_r;
+	//enum {NORMAL, FAST, SLOW} play_mode_w, play_mode_r;
+	logic [63:0] data_w, data_r;
+	logic [63:0] data2_w, data2_r;
+	logic signed [15:0] data_prev_w, data_prev_r;
+	logic signed [15:0] output_data_w, output_data_r;
+	logic [19:0] addr_w, addr_r;
+	//logic [2:0]  speed_w, speed_r;
+	//logic [2:0]  spd_counter_w, spd_counter_r;
+	//reg [2:0] o_state_r,o_state_w;
+	logic [3:0] bar_count_w, bar_count_r;
+	logic finish_r,finish_w;
+	logic flag_w,flag_r;
+	assign o_addr = addr_r;
+	//assign o_DACDAT = output_data_r;
+	assign o_play_n = (state_r == IDLE)||(state_r == WAIT);
+	//assign o_speed[3] = (play_mode_r == SLOW);
+	//assign o_speed[2:0] = speed_r;
+	//assign o_state = o_state_r;
+	assign o_data = data_r;
+	assign o_finish = finish_r;
+
+	assign flag = flag_r;
+	always_comb begin
+		state_w = state_r;
+		//play_mode_w = play_mode_r;
+		flag_w = flag_r;
+		data_w = data_r;
+		data2_w = data2_r;
+		data_prev_w = data_prev_r;
+		output_data_w = output_data_r;
+		addr_w = addr_r;
+
+		finish_w = finish_r;
+		bar_count_w = bar_count_r;
+		case (state_r)
+			IDLE: begin
+				finish_w = 0;
+				addr_w = 0;
+					flag_w = 0;
+				
+				if(i_mode) begin
+					
+					state_w = STOP;
+				end
+			end
+			STOP:begin
+				
+				finish_w = 0;
+				addr_w = 0;
+				if(!i_play)begin
+					flag_w = 1;
+					state_w = WAIT;
+				end
+				if(!i_mode)state_w = IDLE;
+			end
+			WAIT:begin
+				finish_w = 0;
+				if(i_en)begin//wait for barnum
+				
+					bar_count_w = 0;
+					addr_w = {14'b0,i_bar+1,2'b0};
+					state_w = READ1;
+					
+				end
+				if(!i_mode)state_w = IDLE;
+			end
+			READ1: begin
+			//$display("PLAY");
+
+				if(i_mode) begin
+					state_w = READ2;
+					data_w[15:0] = i_SRAM_DQ;
+					addr_w = addr_r + 1;
+				end else 
+					state_w = IDLE;
+			end
+			READ2: begin
+			//$display("PLAY");
+				if(i_mode) begin
+					state_w = READ3;
+					data_w[31:16] = i_SRAM_DQ;
+					addr_w = addr_r + 1;
+				end else 
+					state_w = IDLE;
+
+			end
+			READ3: begin
+			//$display("PLAY");
+			
+				if(i_mode) begin
+					state_w = READ4;
+					data_w[47:32] = i_SRAM_DQ;
+					addr_w = addr_r + 1;
+				end else 
+					state_w = IDLE;
+
+
+			end
+			READ4: begin
+			//$display("PLAY");
+
+				if(i_mode)	 begin
+					if(i_bar2 == 0 )begin
+					finish_w = 1;
+					data_w[63:48] = i_SRAM_DQ;
+					state_w = WAIT;
+				end else begin
+
+				end
+				end else  
+					state_w = IDLE;
+
+			end
+
+			WAIT1:begin
+				finish_w = 0;
+				
+					bar_count_w = 0;
+					addr_w = {14'b00000000000001,i_bar+1,2'b0};
+					state_w = READ11;
+				if(!i_mode)state_w = IDLE;
+			end
+			READ11: begin
+			//$display("PLAY");
+
+				if(i_mode) begin
+					state_w = READ2;
+					data_w[15:0] = i_SRAM_DQ;
+					addr_w = addr_r + 1;
+				end else 
+					state_w = IDLE;
+			end
+			READ21: begin
+			//$display("PLAY");
+				if(i_mode) begin
+					state_w = READ3;
+					data_w[31:16] = i_SRAM_DQ;
+					addr_w = addr_r + 1;
+				end else 
+					state_w = IDLE;
+
+			end
+			READ31: begin
+			//$display("PLAY");
+			
+				if(i_mode) begin
+					state_w = READ4;
+					data_w[47:32] = i_SRAM_DQ;
+					addr_w = addr_r + 1;
+				end else 
+					state_w = IDLE;
+
+
+			end
+			READ41: begin
+			//$display("PLAY");
+
+				if(i_mode)	 begin
+					finish_w = 1;
+					data_w[63:48] = i_SRAM_DQ;
+					state_w = CAL;
+				end else  
+					state_w = IDLE;
+
+			end	
+			CAL:begin
+				for (int i = 0; i<= 63; i++)
+					data_w[i]=data_r[i]+data2_r[i];
+				state_w = WAIT;
+			end		
+		endcase
+	end
+
+	always_ff @(posedge i_bclk or negedge i_rst) begin
+		if(!i_rst) begin
+			state_r <= IDLE;
+			//play_mode_r <= NORMAL;
+			data_r <= 0;
+			data2_r <= 0;
+			data_prev_r <= 0;
+			output_data_r <= 0;
+			addr_r <= 0;
+
+			bar_count_r <= 0;
+			flag_r <= 0;
+			finish_r <= 0;
+
+		end else begin
+			state_r <= state_w;
+			//play_mode_r <= play_mode_w;
+			data_r <= data_w;
+			data2_r <= data2_w;
+			data_prev_r <= data_prev_w;
+			output_data_r <= output_data_w;
+			addr_r <= addr_w;
+
+			//o_state_r <= o_state_w;
+			bar_count_r <= bar_count_w;
+			flag_r <= flag_w;
+			finish_r <= finish_w;
+		end
+	end
+
+
+
+
+endmodule // sramReader
