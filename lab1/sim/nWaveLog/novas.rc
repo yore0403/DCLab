@@ -164,11 +164,11 @@ StickSet-TextColor = black
 [FSM_Dlg-Print]
 Orientation = Landscape
 [FileBrowser]
-nWaveOpenFsdbDirHistory = /home/team06/b05901084/lab1/sim/Lab1_test.fsdb,/home/team06,/home/team06/lin_class.fsdb,/home/team06/b05901084/lab1/sim,
+nWaveOpenFsdbDirHistory = /home/team06/b05901084/lab1_2/sim/Lab1_test.fsdb,/home/team06/b05901084/lab1/sim/Lab1_test.fsdb,/home/team06,/home/team06/lin_class.fsdb,/home/team06/b05901084/lab1/sim,
 [Form]
 version = Verdi3_2013.07
-wave/getSignal.fm = 100,100,856,562
 wave/openWFile.fm = 111,31,823,696
+wave/getSignal.fm = 100,100,856,562
 [General]
 autoSaveSession = FALSE
 TclAutoSource = 
@@ -237,8 +237,7 @@ PaperSize = A4 - 210x297 (mm)
 ColorPrint = FALSE
 [QtDialog]
 QwInfoMsgDlg = 255,224,750,250
-QwWarnMsgDlg = 650,375,600,250
-QwUserAskDlg = 350,230,324,152
+QwUserAskDlg = 350,230,324,142
 [Session Cache]
 1 = string (session file name)
 2 = string (session file name)
@@ -650,8 +649,9 @@ curveWindow_Drag&Drop_Mode = TRUE
 hspiceIncOpenMode = TRUE
 pcSelectMode = TRUE
 hierarchyDelimiter = /
-RecentFile1 = /home/team06/b05901084/lab1/sim/Lab1_test.fsdb
-RecentFile2 = /home/team06/lin_class.fsdb.fsdb
+RecentFile1 = /home/team06/b05901084/lab1_2/sim/Lab1_test.fsdb
+RecentFile2 = /home/team06/b05901084/lab1/sim/Lab1_test.fsdb
+RecentFile3 = /home/team06/lin_class.fsdb.fsdb
 open_file_time_range = FALSE
 value_window_aligment = Right
 signal_window_alignment = Auto

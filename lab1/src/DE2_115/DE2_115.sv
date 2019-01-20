@@ -134,6 +134,8 @@ module DE2_115(
 	input [16:0] HSMC_RX_D_P,
 	output [16:0] HSMC_TX_D_P,
 	inout [6:0] EX_IO
+
+
 );
 	logic keydown;
 	logic [3:0] random_value;

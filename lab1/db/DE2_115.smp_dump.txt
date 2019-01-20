@@ -1,0 +1,6 @@
+
+State Machine - |DE2_115|Top:top0|next_state
+Name next_state.STATE_RST next_state.STATE_RUN next_state.STATE_IDLE 
+next_state.STATE_RST 0 0 0 
+next_state.STATE_IDLE 1 0 1 
+next_state.STATE_RUN 1 1 0 

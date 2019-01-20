@@ -1,5 +1,3 @@
-
-
 module Top(
 	input i_clk,
 	input i_rst,
@@ -8,7 +6,7 @@ module Top(
 );
 //reg [3:0] o_random_out;
 
-parameter FREQ = 5000;
+parameter FREQ = 1;
 
 logic clk;
 logic [31:0]count_r,count_w;
@@ -94,7 +92,6 @@ always @(posedge clk) begin
 		count_w = 0;
 		//temp_r <= 0;
 		//my_state <= STATE_RUN;
-		
 		next_state = STATE_RUN;
 		
 	end
@@ -125,8 +122,8 @@ always @(posedge clk) begin
 									next_state = my_state;
 								end
 
-				142000001,142005000:	begin
-					$display("IDLE");
+				142000001:	begin
+									
 									next_state = STATE_IDLE;
 									Q_w = Q_r;
 									temp_w = temp_r;
