@@ -1,0 +1,11 @@
+
+State Machine - |DE2_115_CAMERA|Music_Controller:u9|bar2_count_r
+Name bar2_count_r.1000 
+bar2_count_r.0000 0 
+bar2_count_r.1000 1 
+
+State Machine - |DE2_115_CAMERA|I2C_CCD_Config:u8|mSetup_ST
+Name mSetup_ST.0000 mSetup_ST.0010 mSetup_ST.0001 
+mSetup_ST.0000 0 0 0 
+mSetup_ST.0001 1 0 1 
+mSetup_ST.0010 1 1 0 

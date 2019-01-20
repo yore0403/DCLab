@@ -1,0 +1,5 @@
+Warning (10273): Verilog HDL warning at sramWriter.sv(45): extended using "x" or "z"
+Info (10281): Verilog HDL Declaration information at Flash_Controller.sv(31): object "INIT" differs only in case from object "init" in the same scope
+Warning (10268): Verilog HDL information at Object_Detector.v(142): always construct contains both blocking and non-blocking assignments
+Warning (10273): Verilog HDL warning at Sdram_Control.v(320): extended using "x" or "z"
+Info (10281): Verilog HDL Declaration information at DE2_115_CAMERA.v(404): object "SRAM_ADDR" differs only in case from object "sram_addr" in the same scope
