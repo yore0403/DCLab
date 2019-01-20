@@ -1,4 +1,3 @@
-//by084
 module Rsa256Wrapper(
     input avm_rst,
     input avm_clk,
@@ -20,22 +19,9 @@ module Rsa256Wrapper(
     localparam S_GET_DATA = 1;
     localparam S_WAIT_CALCULATE = 2;
     localparam S_SEND_DATA = 3;
-	
-	parameter RST=3'b0;
-	parameter QUERY_RX=3'd1;
-	parameter READ=3'd2;
-	parameter CALCULATE=3'd3;
-	parameter QUERY_TX=3'd4;
-	parameter WRITE=3'd5;
-	
-	parameter N=2'd0;
-	parameter E=2'd1;
-	parameter A=2'd2;
-	parameter NULL=2'd3;
-	
+
     logic [255:0] n_r, n_w, e_r, e_w, enc_r, enc_w, dec_r, dec_w;
-    logic [2:0] state_r, state_w;
-	logic [1:0] data_state_r,data_state_w;
+    logic [1:0] state_r, state_w;
     logic [6:0] bytes_counter_r, bytes_counter_w;
     logic [4:0] avm_address_r, avm_address_w;
     logic avm_read_r, avm_read_w, avm_write_r, avm_write_w;
@@ -43,16 +29,14 @@ module Rsa256Wrapper(
     logic rsa_start_r, rsa_start_w;
     logic rsa_finished;
     logic [255:0] rsa_dec;
-	
-	
-	logic [7:0] read_addr_r,read_addr_w,write_addr_r,write_addr_w;
+    logic check_r, check_w;
+    logic [3:0] counter_r,counter_w;
 
     assign avm_address = avm_address_r;
     assign avm_read = avm_read_r;
     assign avm_write = avm_write_r;
     assign avm_writedata = dec_r[247-:8];
 
-	
     Rsa256Core rsa256_core(
         .i_clk(avm_clk),
         .i_rst(avm_rst),
@@ -66,169 +50,223 @@ module Rsa256Wrapper(
 
     task StartRead;
         input [4:0] addr;
-		input [2:0] stat;
         begin
             avm_read_w = 1;
             avm_write_w = 0;
             avm_address_w = addr;
-			state_w = stat;
         end
     endtask
     task StartWrite;
         input [4:0] addr;
-		input [2:0] stat;
         begin
             avm_read_w = 0;
             avm_write_w = 1;
             avm_address_w = addr;
-			state_w = stat;
         end
     endtask
-	
-	task ReadData;
-		output [255:0]data_w;
-        input [255:0]data_r;
-		begin
-			//$display("%d #%d #%h",data_state_r,read_addr_w,avm_readdata[7:0]);
-			data_w = (data_r<<8) + avm_readdata[7:0];
-			
-			if(read_addr_r == 0)begin
-				data_state_w = data_state_r + 1;
-					
-			end 
-			read_addr_w = read_addr_r - 8;
-			
-			//avm_address_w = STATUS_BASE;
-			//state_w = QUERY_RX;
-		end	
-	endtask
-	
-	task WriteData;
-		begin
-			//avm_writedata[7:0] = dec_w[read_addr_w +:8];
 
-			//$display("@#$",dec_w[247 -:8]);			
-			write_addr_w = write_addr_r +8;
-			if(write_addr_r == 240)begin
-			write_addr_w = 0;
-			end
-			dec_w = dec_r<<8;
-			
-							
-
-		end	
-	endtask
-///////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////
-    always @(*) begin
+    always_comb begin
         // TODO
-        //$display("ddd");
-            n_w = n_r;
-            e_w = e_r;
-            enc_w = enc_r;
-            dec_w = dec_r;
-			read_addr_w = read_addr_r;
-			write_addr_w = write_addr_r;
-			data_state_w = data_state_r;
-			rsa_start_w = rsa_start_r;
-		    avm_address_w = avm_address_r;
-            avm_read_w = avm_read_r;
-            avm_write_w = avm_write_r;
-            state_w = state_r;
-            bytes_counter_w = bytes_counter_r;
-		case(state_r)
-			
-			QUERY_RX: begin//go to read_state
-				//$display("QUERY_RX");
-				if(!avm_waitrequest && avm_readdata[RX_OK_BIT])begin
-					//avm_address_w = RX_BASE;
-					StartRead(RX_BASE,READ);
-				end else begin
-					StartRead(avm_address_r,state_r);
-				end
-			end
-			
-			READ: begin
-				//$display("READ");
-			if(!avm_waitrequest & avm_read_r)begin
-				//StartRead(avm_address_r);					
-					case(data_state_r)
-						N:begin
-							ReadData(n_w,n_r);
-							//StartRead(STATUS_BASE,QUERY_RX);
-						end
-						E:begin
-							ReadData(e_w,e_r);
-							//StartRead(STATUS_BASE,QUERY_RX);
-						end
-						A:begin
-							ReadData(enc_w,enc_r);
-							
-						end
-						endcase
-						if(data_state_r == A & read_addr_r == 0) begin
-							rsa_start_w = 1;
-							data_state_w = A;
-							avm_address_w = STATUS_BASE;
-							state_w = CALCULATE;
-						end else
-							StartRead(STATUS_BASE,QUERY_RX);
-					//default:
-					//	state_w = state_r;	
-				end else begin
-					StartRead(RX_BASE,READ);
-				end	
-			end			
-			
-			CALCULATE:	begin
-			
-				//temp
-				//$display("CALCULATE");
-				//dec_w = enc_r;
-				//if(rsa_start_w == 1)begin
-				rsa_start_w = 0;
-				//end
-				if(rsa_finished)begin
-				//rsa_start_w = 0;
-				dec_w = rsa_dec;
-				read_addr_w = 248;
-				write_addr_w = 0;
-				state_w = QUERY_TX;
-				end
-			end
-			
-			QUERY_TX: begin
-				
-				if(!avm_waitrequest && avm_readdata[TX_OK_BIT])begin
-					//$display("QUERY_TX");
-					StartWrite(TX_BASE,WRITE);
-					//state_w = WRITE;
+        n_w = n_r;
+        e_w = e_r;
+        enc_w = enc_r;
+        dec_w = dec_r;
+        avm_read_w = avm_read_r;
+        avm_write_w = avm_write_r;
+        avm_address_w = avm_address_r;
+        state_w = state_r;
+        bytes_counter_w = bytes_counter_r;
+        rsa_start_w = rsa_start_r;
+        check_w = check_r;
+        counter_w = counter_r;
 
-				end else begin
-					StartRead(STATUS_BASE,QUERY_TX);
-				end			
-			end
-			WRITE: begin
-				//$display("WRITE");
-				
-				if(!avm_waitrequest& avm_write_r)begin
-					WriteData();
-					if(write_addr_r !=240)begin
-					StartRead(STATUS_BASE,QUERY_TX);
-					end else
-					StartRead(STATUS_BASE,QUERY_RX);	
-				end else begin
-					StartWrite(TX_BASE,WRITE);
+
+
+
+
+
+        case(state_r)
+            S_GET_KEY:begin
+                if(!check_r)begin //check if waitrequest = 0 and RX_OK_BIT = 1
+                    if(!avm_waitrequest)begin
+                        if(avm_readdata[RX_OK_BIT])begin
+                            StartRead(RX_BASE);
+                            check_w = 1;
+                        end
+                        else check_w = check_r;
+                    end
+                    else check_w = check_r;
+                    state_w = S_GET_KEY;
+                end
+                else begin // start to get key
+                    if(bytes_counter_r[6:5] == 2)begin //count from 64 to 95 for getting N
+                        if(!avm_waitrequest) begin
+                            StartRead(STATUS_BASE);
+                            n_w = (n_r << 8) + avm_readdata[7:0];
+                            bytes_counter_w = bytes_counter_r + 1;
+                            check_w = 0;
+                        end
+                        else begin
+                            n_w = n_r;
+                            bytes_counter_w = bytes_counter_r;
+                            check_w = check_r;
+                        end
+                        state_w = S_GET_KEY;
+						e_w = e_r;
+						enc_w = enc_r;
+						dec_w = dec_r;
+                        rsa_start_w = rsa_start_r;
+                    end
+                    else if (bytes_counter_r[6:5] == 3)begin //count from 96 to 127 for getting e
+                        if(!avm_waitrequest) begin
+                            StartRead(STATUS_BASE);
+                            e_w = (e_r << 8) + avm_readdata[7:0];
+                            bytes_counter_w = bytes_counter_r + 1;
+                            check_w = 0;
+                            if(bytes_counter_r[4:0] == 31) state_w = S_GET_DATA; // finish getting key
+							else state_w = S_GET_KEY;
+                        end
+                        else begin
+                            e_w = e_r;
+                            bytes_counter_w = bytes_counter_r;
+                            check_w = check_r;
+                        end
+                    end
+                    else begin
+                        n_w = n_r;
+						e_w = e_r;
+						enc_w = enc_r;
+						dec_w = dec_r;
+						state_w = state_r;
+						bytes_counter_w = bytes_counter_r;
+						rsa_start_w = rsa_start_r;
+                        check_w = check_r;
+                    end
+                end
+            end
+            
+            S_GET_DATA:begin
+                if(!check_r)begin //check if waitrequest = 0 and RX_OK_BIT = 1
+                    if(!avm_waitrequest)begin
+                        if(avm_readdata[RX_OK_BIT])begin
+                            StartRead(RX_BASE);
+                            check_w = 1;
+                        end
+                        else check_w = check_r;
+                    end
+                    else check_w = check_r;
+                    state_w = S_GET_DATA;
+                end
+                else begin // start to get data
+                    if(bytes_counter_r[6:5] == 0)begin
+                        if(!avm_waitrequest) begin
+                            StartRead(STATUS_BASE);
+                            enc_w = (enc_r << 8) + avm_readdata[7:0];
+                            bytes_counter_w = bytes_counter_r + 1;
+                            check_w = 0;
+                        
+                            if(bytes_counter_r == 31) begin
+                                state_w = S_WAIT_CALCULATE;
+                                rsa_start_w = 1;
+                            end 
+                            else begin
+                                state_w = S_GET_DATA;
+                                rsa_start_w = rsa_start_r;
+                            end
+                        end
+                        else begin 
+                            enc_w = enc_r;
+                            bytes_counter_w = bytes_counter_r;
+                            check_w = check_r;
+                            state_w = state_r;
+                            rsa_start_w = rsa_start_r;
+                        end
+                    end
+                    else begin
+                        enc_w = enc_r;
+						bytes_counter_w = bytes_counter_r;
+						check_w = check_r;
+						state_w = state_r;
+                        rsa_start_w = rsa_start_r;
+                    end
+                end
+            end
+            
+            S_WAIT_CALCULATE:begin // waiting for calculate from core
+                rsa_start_w = 0;
+				n_w = n_r;
+				e_w = e_r;
+				enc_w = enc_r;
+				bytes_counter_w = bytes_counter_r;
+				check_w = check_r;
+                if(rsa_finished) begin 
+					state_w = S_SEND_DATA;
+					dec_w = rsa_dec;
+					StartRead(STATUS_BASE);
+                end 
+                else begin 
+					state_w = state_r;
+					dec_w = dec_r;
+					//avm_read_w = 0;
+					//avm_write_w = 0;
+					avm_address_w = avm_address_r;
 				end
-			end	
-		endcase
+            end
+
+            S_SEND_DATA:begin // ready for calculating and sending data 
+                if(!check_r)begin //check if waitrequest = 0 and TX_OK_BIT = 1
+                    if(!avm_waitrequest)begin
+                        if(avm_readdata[TX_OK_BIT])begin
+                            StartWrite(TX_BASE);
+                            check_w = 1;
+                        end
+                        else check_w = check_r;
+                    end
+                    else check_w = check_r;
+                    state_w = S_SEND_DATA;
+                end
+                else begin
+                    if(bytes_counter_r[6:5] == 1)begin
+                        if(!avm_waitrequest) begin
+                            StartRead(STATUS_BASE);
+                            dec_w = dec_r << 8;
+                            check_w = 0;
+                            if(bytes_counter_r[4:0] == 30) begin // finish sending data
+                                state_w = S_GET_DATA;
+                                bytes_counter_w = 0;
+                                avm_write_w = 0;
+                                counter_w = counter_w + 1;
+                            end
+                            else begin
+                                bytes_counter_w = bytes_counter_r + 1;
+                                state_w = S_SEND_DATA;
+                            end
+                        end
+                        else begin
+							dec_w = dec_r;
+							check_w = check_r;
+							bytes_counter_w = bytes_counter_r;
+							state_w = S_SEND_DATA;
+                        end
+                    end
+                    else begin
+                        bytes_counter_w[6:5] = 1;
+						n_w = n_r;
+						e_w = e_r;
+						enc_w = enc_r;
+						dec_w = dec_r;
+						state_w = state_r;
+						rsa_start_w = rsa_start_r;
+                        check_w = check_r;
+                    end
+                end
+            end
+        endcase
     end
 
 
     always_ff @(posedge avm_clk or posedge avm_rst) begin
-        //$display("clk");
-		if (avm_rst) begin
-        	//$display("rst");
+        if (avm_rst) begin
             n_r <= 0;
             e_r <= 0;
             enc_r <= 0;
@@ -236,15 +274,12 @@ module Rsa256Wrapper(
             avm_address_r <= STATUS_BASE;
             avm_read_r <= 1;
             avm_write_r <= 0;
-            //state_r <= S_GET_KEY;
-            state_r <= QUERY_RX;
-			bytes_counter_r <= 63;
+            state_r <= S_GET_KEY;
+            bytes_counter_r <= 64;
             rsa_start_r <= 0;
-			data_state_r <= N;
-			read_addr_r<= 248;
-			write_addr_r<= 0;
+            check_r <= 0;
+            counter_r<=0;
         end else begin
-        	//$display("!rst");
             n_r <= n_w;
             e_r <= e_w;
             enc_r <= enc_w;
@@ -255,10 +290,8 @@ module Rsa256Wrapper(
             state_r <= state_w;
             bytes_counter_r <= bytes_counter_w;
             rsa_start_r <= rsa_start_w;
-			data_state_r <= data_state_w;
-			read_addr_r<=read_addr_w;
-			write_addr_r<=write_addr_w;
+            check_r <= check_w;
+            counter_r <= counter_w;
         end
     end
-
 endmodule
