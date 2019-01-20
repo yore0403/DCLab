@@ -16,10 +16,11 @@ module SramReader(
 	input i_bclk,
 	input i_rst,
 	input i_enable,
-	input i_mode,		// SW[9]:read mode or write mode
-	input i_save,		// KEY[3]:save
-	input i_bar,	// SW[17:10]:choose bar to play or read
-	input i_load,	// KEY[4]:load
+	input i_play,		// From KEY//change pause to play
+	input i_stop,		// From KEY
+	input i_speed_up,	// From KEY
+	input i_speed_down,	// From KEY
+	input i_interpol,
 	input i_DACLRCK,
 	input [19:0] i_end_addr,
 	input [15:0] i_SRAM_DQ,

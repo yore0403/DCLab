@@ -1,7 +1,0 @@
-
-State Machine - |DE2_115|top:top|I2Cinitialize:init|I2Csender:i2csender|state_r
-Name state_r.S_FIN state_r.S_ACK state_r.S_TX state_r.S_START 
-state_r.S_START 0 0 0 0 
-state_r.S_TX 0 0 1 1 
-state_r.S_ACK 0 1 0 1 
-state_r.S_FIN 1 0 0 1 
